@@ -47,15 +47,16 @@ Sample Outputs:
 
 <img src="https://raw.githubusercontent.com/aashishvanand/Advanced-Lane-Lines-P4/master/output_images/chessboard_4.png"/><br>
 
+###Pipeline (single images)
 
-Next we corrected distortion using cv2.undistort() using the chessboard first and then we follow the same for the test_images too the detailed output and the code could be found in the Advacned_Lane_Finding.pynb (In [5],In [6],In [7]) or Advanced_Lane_Finding.html<br>
+We now corrected distortion using cv2.undistort() using the chessboard first and then we follow the same for the test_images too the detailed output and the code could be found in the Advacned_Lane_Finding.pynb (In [5],In [6],In [7]) or Advanced_Lane_Finding.html<br>
 
 Method: Read the image<br>
 Run a cv2.calibrateCamera(objectpoints, imagepoints, img_size,None,None)<br>
 Now use cv2.undistort(img, mtx, dist, None, mtx)<br>
 Show the Output<br>
 
-Sample Outputs:
+Sample Outputs:<br>
 
 <img src="https://raw.githubusercontent.com/aashishvanand/Advanced-Lane-Lines-P4/master/output_images/undistorted_chess.png"/><br>
 
@@ -63,77 +64,70 @@ Sample Outputs:
 
 <img src="https://raw.githubusercontent.com/aashishvanand/Advanced-Lane-Lines-P4/master/output_images/test_image_2.png"/><br>
 
+###Perspective Transform (birds-eye view)
 
-###Pipeline (single images)
+Actually its asked to do a perspective transformation of the combined binary output. But i  felt doing a perspective transformation (birds-eye view) and finding the binary would even reduce the work. In finding thresholds and finding combined binary output only the road and the line markings will be the input so there will be no further noise in the image. <br>
 
-####1. Provide an example of a distortion-corrected image.
-To demonstrate this step, I will describe how I apply the distortion correction to one of the test images like this one:
-![alt text][image2]
-####2. Describe how (and identify where in your code) you used color transforms, gradients or other methods to create a thresholded binary image.  Provide an example of a binary image result.
-I used a combination of color and gradient thresholds to generate a binary image (thresholding steps at lines # through # in `another_file.py`).  Here's an example of my output for this step.  (note: this is not actually from one of the test images)
+Method : Read the image<br>
+Run undistort_view() function to get a distorction free image<br>
+src = np.float32([[490, 482],[810, 482],[1250, 720],[40, 720]])<br>
+dst = np.float32([[0, 0], [1280, 0],[1250, 720],[40, 720]])<br>
+Use to generate cv2.getPerspectiveTransform(src, dst)<br>
+Show the output<br>
 
-![alt text][image3]
+Sample Output:<br>
 
-####3. Describe how (and identify where in your code) you performed a perspective transform and provide an example of a transformed image.
+<img src="https://raw.githubusercontent.com/aashishvanand/Advanced-Lane-Lines-P4/master/output_images/helicopter_view_1.png"/><br>
 
-The code for my perspective transform includes a function called `warper()`, which appears in lines 1 through 8 in the file `example.py` (output_images/examples/example.py) (or, for example, in the 3rd code cell of the IPython notebook).  The `warper()` function takes as inputs an image (`img`), as well as source (`src`) and destination (`dst`) points.  I chose the hardcode the source and destination points in the following manner:
+<img src="https://raw.githubusercontent.com/aashishvanand/Advanced-Lane-Lines-P4/master/output_images/helicopter_view_2.png"/><br>
 
-```
-src = np.float32(
-    [[(img_size[0] / 2) - 55, img_size[1] / 2 + 100],
-    [((img_size[0] / 6) - 10), img_size[1]],
-    [(img_size[0] * 5 / 6) + 60, img_size[1]],
-    [(img_size[0] / 2 + 55), img_size[1] / 2 + 100]])
-dst = np.float32(
-    [[(img_size[0] / 4), 0],
-    [(img_size[0] / 4), img_size[1]],
-    [(img_size[0] * 3 / 4), img_size[1]],
-    [(img_size[0] * 3 / 4), 0]])
+###Combined Thresholded Binary Image
+apply_thresholds() is the function that uses three diffrent channels s_channel(Saturation), l_channel(Luminance), and b_channel(for yellow color) Most of the lane will fall under this catagory and a binary threshold can be generated leaving out other factors. It was able to find both Yellow and White lane lines and often gets distracted by shadow in the road. The limts are
+The S Channel from the HLS color space, using cv2.COLOR_BGR2HLS function
+min threshold 180 <br>
+max threshold 255 <br>
+<br>
 
-```
-This resulted in the following source and destination points:
+The L Channel from the LUV color space, using cv2.COLOR_BGR2LUV function. It was able to find the white lines fully but it ignored the yellow lines fully. The limits are.
+min threshold 215 <br>
+max threshold 255 <br>
+<br>
 
-| Source        | Destination   | 
-|:-------------:|:-------------:| 
-| 585, 460      | 320, 0        | 
-| 203, 720      | 320, 720      |
-| 1127, 720     | 960, 720      |
-| 695, 460      | 960, 0        |
+The B channel from the Lab color space, using cv2.COLOR_BGR2Lab function. It was able to find the yellow lines fully but it ignored the white lines fully.<br>
+min threshold 145 <br>
+max threshold 200 <br>
+<br>
+The L channel and the B channel together made sure that all the lane lines (yellow and white) are included. S channel was left because it added more noise to the combaind binary thresholded image.
 
-I verified that my perspective transform was working as expected by drawing the `src` and `dst` points onto a test image and its warped counterpart to verify that the lines appear parallel in the warped image.
+Method : When the image is passed<br>
+it is split into diffrent channels namely s channel, l channel and the b channel based on the threshold.<br>
+combained output is
 
-![alt text][image4]
+Sample Output: <br>
 
-####4. Describe how (and identify where in your code) you identified lane-line pixels and fit their positions with a polynomial?
+<img src="https://raw.githubusercontent.com/aashishvanand/Advanced-Lane-Lines-P4/master/output_images/combined_1.png"/><br>
 
-Then I did some other stuff and fit my lane lines with a 2nd order polynomial kinda like this:
+####Detect lane pixels and fit to find the lane boundary.
 
-![alt text][image5]
-
+The fitting of polynomial to each line was done by
+<ul>
+<li>Identifying peaks in a histogram of the image to determine location of lane lines.</li><br>
+<li>Identifying all non zero pixels around histogram peaks using the numpy function numpy.nonzero().</li><br>
+<li>Fitting a polynomial to each lane using the numpy function numpy.polyfit().</li><br>
+</ul>
 ####5. Describe how (and identify where in your code) you calculated the radius of curvature of the lane and the position of the vehicle with respect to center.
 
-I did this in lines # through # in my code in `my_other_file.py`
 
 ####6. Provide an example image of your result plotted back down onto the road such that the lane area is identified clearly.
 
-I implemented this step in lines # through # in my code in `yet_another_file.py` in the function `map_lane()`.  Here is an example of my result on a test image:
-
-![alt text][image6]
-
----
 
 ###Pipeline (video)
 
 ####1. Provide a link to your final video output.  Your pipeline should perform reasonably well on the entire project video (wobbly lines are ok but no catastrophic failures that would cause the car to drive off the road!).
 
-Here's a [link to my video result](./project_video.mp4)
-
----
 
 ###Discussion
 
 ####1. Briefly discuss any problems / issues you faced in your implementation of this project.  Where will your pipeline likely fail?  What could you do to make it more robust?
 
 Here I'll talk about the approach I took, what techniques I used, what worked and why, where the pipeline might fail and how I might improve it if I were going to pursue this project further.  
-
-
