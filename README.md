@@ -11,7 +11,7 @@ The goals / steps of this project are the following:
 * Warp the detected lane boundaries back onto the original image.
 * Output visual display of the lane boundaries and numerical estimation of lane curvature and vehicle position.
 
-###Camera Calibration
+# Camera Calibration
 
 ####1. Briefly state how you computed the camera matrix and distortion coefficients. Provide an example of a distortion corrected calibration image.
 
@@ -33,7 +33,7 @@ Sample Outputs:
 
 <img src="https://raw.githubusercontent.com/aashishvanand/Advanced-Lane-Lines-P4/master/output_images/chessboard_4.png"/><br>
 
-###Pipeline (single images)
+# Pipeline (single images)
 
 We now corrected distortion using cv2.undistort() using the chessboard first and then we follow the same for the test_images too the detailed output and the code could be found in the Advacned_Lane_Finding.pynb (In [5],In [6],In [7]) or Advanced_Lane_Finding.html<br>
 
@@ -50,7 +50,7 @@ Sample Outputs:<br>
 
 <img src="https://raw.githubusercontent.com/aashishvanand/Advanced-Lane-Lines-P4/master/output_images/test_image_2.png"/><br>
 
-###Perspective Transform (birds-eye view)
+# Perspective Transform (birds-eye view)
 
 Actually its asked to do a perspective transformation of the combined binary output. But i  felt doing a perspective transformation (birds-eye view) and finding the binary would even reduce the work. In finding thresholds and finding combined binary output only the road and the line markings will be the input so there will be no further noise in the image. <br>
 
@@ -67,7 +67,7 @@ Sample Output:<br>
 
 <img src="https://raw.githubusercontent.com/aashishvanand/Advanced-Lane-Lines-P4/master/output_images/helicopter_view_2.png"/><br>
 
-###Combined Thresholded Binary Image
+# Combined Thresholded Binary Image
 apply_thresholds() is the function that uses three diffrent channels s_channel(Saturation), l_channel(Luminance), and b_channel(for yellow color) Most of the lane will fall under this catagory and a binary threshold can be generated leaving out other factors. It was able to find both Yellow and White lane lines and often gets distracted by shadow in the road. The limts are
 The S Channel from the HLS color space, using cv2.COLOR_BGR2HLS function<br>
 min threshold 180 <br>
@@ -93,7 +93,7 @@ Sample Output: <br>
 
 <img src="https://raw.githubusercontent.com/aashishvanand/Advanced-Lane-Lines-P4/master/output_images/combined_1.png"/><br>
 
-####Detect lane pixels and fit to find the lane boundary.
+# Detect lane pixels and fit to find the lane boundary.
 
 The fitting of polynomial to each line was done by
 <ul>
@@ -138,7 +138,7 @@ Radius of Curvature was taken as an average of left and right curves.
     pts_right = np.array([np.transpose(np.vstack([right_fitx, righty]))])
     pts = np.hstack((pts_left, pts_right))
 
-####Warp the detected lane boundaries back onto the original image
+# Warp the detected lane boundaries back onto the original image
 
 The polynomial plotted image is shown in the left and the image in the right shown the fill the space between the polynomials to highlight the lane that the car is in another perspective transformation is used to unwrap the image from helicopter view or top down view to its original presoective. The vehicle distance from the center and the radius of curvature is printed.<br>
 
@@ -148,7 +148,7 @@ Output<br>
 <img src="https://raw.githubusercontent.com/aashishvanand/Advanced-Lane-Lines-P4/master/output_images/fill_lanes_2.png"/><br>
 
 
-###Pipeline (video)
+# Pipeline (video)
 
 The final step was to expand the pipeline which was earlier done for still images to process videos frame-by-frame, This could stimulate a realtime situation. Video is still based on combining images like 25fps or 30fps. <br>
 
@@ -174,7 +174,7 @@ And the epic fail Harder Challenge Result:<br>
 [![Final Output](http://img.youtube.com/vi/iMOMkybZ1vo/0.jpg)](https://www.youtube.com/watch?v=iMOMkybZ1vo)<br>
 <br>
 
-###Discussion
+# Discussion
 
 When there is heavy shadow like the one in the Harder Challenge Result algo fails. What i felt was further experimenting channels or a combained output of the normal camera with a ir camera can help to solve this issue. Weather Conditions play a major role however better our algorithm is.<br>
 Just with the diffrence of 10 in the b_channel can make the prediction worse. so only optimised paratmets should be used. Experimenting with luminance converting into greyscale and mapping the lanes as a second refrence as a backup could further give some better output in the final video. Due to the deadline and time constraints i am submitting it.
